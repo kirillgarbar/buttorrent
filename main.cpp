@@ -12,7 +12,7 @@ int main() {
     // parse torrent
     TorrentFile tf = Decoder::getTorrentFile("Debian.torrent");
 
-    PeerRetriever::retrievePeers(tf);
+    vector<Peer> peers = PeerRetriever::retrievePeers(tf);
     // download
 
     return 0;

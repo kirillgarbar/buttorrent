@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <functional>
 #include <cpr/cpr.h>
+#include <bitset>
 #include "decoder.hpp"
 
 #include <iostream>
@@ -16,7 +17,8 @@ using random_bytes_engine = std::independent_bits_engine<
     std::default_random_engine, CHAR_BIT, unsigned char>;
 
 struct Peer {
-    
+    std::string Ip;
+    int Port;
 };
 
 struct PeerRetriever
@@ -46,6 +48,14 @@ private:
         return peerId;
     }
 
+    static inline int bytesToInt(std::string bytes) {
+        std::string binStr;
+        long byteCount = bytes.size();
+        for (int i = 0; i < byteCount; i++)
+            binStr += std::bitset<8>(bytes[i]).to_string();
+        return stoi(binStr, 0, 2);
+    }
+
 public:
     static inline std::vector<Peer> retrievePeers(TorrentFile& tf) {
         using namespace std;
@@ -62,8 +72,29 @@ public:
             { "compact", "1" }
         }, cpr::Timeout{ TIMEOUT }
         );
-        
-        return {};
+
+        auto data = bencode::decode(res.text);
+        auto dict = get<bencode::dict>(data);
+
+        int interval = (int) get<bencode::integer>(dict.find("interval")->second);
+        string peersString = get<bencode::string>(dict.find("peers")->second);
+
+        vector<string> peerString;
+        for(int i = 0; i < peersString.size(); i += 6) peerString.push_back(peersString.substr(i, 6));
+
+        vector<Peer> peers;
+        for(auto peer : peerString) {
+            stringstream ip;
+            ip << to_string((unsigned char)peer[0]) << ".";
+            ip << to_string((unsigned char)peer[1]) << ".";
+            ip << to_string((unsigned char)peer[2]) << ".";
+            ip << to_string((unsigned char)peer[3]);
+            
+            int port = bytesToInt(peer.substr(4, 2));
+            peers.push_back({ip.str(), port});
+        }
+
+        return peers;
     }
 };
 
