@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include "decoder.hpp"
+#include "peerRetriever.hpp"
 
 int main() {
     using namespace std;
@@ -10,10 +11,8 @@ int main() {
     
     // parse torrent
     TorrentFile tf = Decoder::getTorrentFile("Debian.torrent");
-    cout << tf.InfoHash;
 
-    // get peers 
-
+    PeerRetriever::retrievePeers(tf);
     // download
 
     return 0;
