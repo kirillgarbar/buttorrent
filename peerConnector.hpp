@@ -61,6 +61,7 @@ public:
 
     static inline std::string createHandshake(const std::string& infoHash, const std::string& peerId) {
         using namespace std;
+
         static string pstr = "BitTorrent protocol";
         
         stringstream message;
@@ -73,11 +74,13 @@ public:
 
     static inline int handshake(const Peer& peer, const std::string& infoHash, const std::string& peerId) {
         using namespace std;
-        int status = connectToPeer(peer);
-        if (status == -1) return -1;
+
+        int sockfd = connectToPeer(peer);
+        if (sockfd == -1) return -1;
 
         string handshakeMessage = createHandshake(infoHash, peerId);
 
-        return 0;
+        cout << send(sockfd, handshakeMessage.c_str(), handshakeMessage.size(), 0) << endl;
+        return sockfd;
     }
 };
