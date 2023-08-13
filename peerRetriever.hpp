@@ -13,12 +13,14 @@
 #define PORT 8080
 #define TIMEOUT 15000
 
-using random_bytes_engine = std::independent_bits_engine<
-    std::default_random_engine, CHAR_BIT, unsigned char>;
-
 struct Peer {
     std::string Ip;
     int Port;
+};
+
+struct RetrievedPeers {
+    int interval;
+    std::vector<Peer> peers;
 };
 
 struct PeerRetriever
@@ -36,18 +38,6 @@ private:
         return decodedHexString;
     }
 
-    static inline std::string generatePeerId() {
-        using namespace std;
-
-        random_bytes_engine rbe;
-        vector<unsigned char> data(20);
-        generate(data.begin(), data.end(), rbe);
-        string peerId;
-        for(char c : data) peerId.push_back(c);
-
-        return peerId;
-    }
-
     static inline int bytesToInt(std::string bytes) {
         std::string binStr;
         long byteCount = bytes.size();
@@ -57,10 +47,8 @@ private:
     }
 
 public:
-    static inline std::vector<Peer> retrievePeers(TorrentFile& tf) {
+    static inline RetrievedPeers retrievePeers(TorrentFile& tf, std::string peerId) {
         using namespace std;
-
-        string peerId = generatePeerId();
 
         cpr::Response res = cpr::Get(cpr::Url{tf.Announce}, cpr::Parameters {
             { "info_hash", hexDecode(tf.InfoHash) },
@@ -94,7 +82,7 @@ public:
             peers.push_back({ip.str(), port});
         }
 
-        return peers;
+        return { interval, peers };
     }
 };
 

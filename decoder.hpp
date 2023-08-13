@@ -28,7 +28,7 @@ struct TorrentFile
 };
 
 struct Decoder {
-
+private:
     static inline BencodedTorrentFile decode(std::string filename) {
         using namespace std;
 
@@ -99,7 +99,7 @@ struct Decoder {
 
         return res;
     }
-
+public:
     static inline TorrentFile getTorrentFile(std::string filename) {
         BencodedTorrentFile btf = decode(filename);
         return parse(btf);
