@@ -8,8 +8,10 @@
 #include <fcntl.h>
 #include "peerRetriever.hpp"
 
+//Connects client to peers
 struct PeerConnector {
 private:
+    //Set socket to blocking and nonblocking mode
     static inline bool setSocketBlocking(int sock, bool blocking) {
         int flags = fcntl(sock, F_GETFL, 0);
         if (flags == -1) return false;
@@ -17,7 +19,25 @@ private:
         return (fcntl(sock, F_SETFL, flags) == 0);
     }
 
+    static inline std::string createHandshake(const std::string& infoHash, const std::string& peerId) {
+        using namespace std;
+
+        static string pstr = "BitTorrent protocol";
+        
+        stringstream message;
+        message << to_string((unsigned char)19) << pstr;
+        for (int i = 0; i < 8; i++) message << to_string((unsigned char)0);
+        message << infoHash << peerId;
+
+        return message.str();
+    }
+
+    static inline int sendData(const std::string& data, int sockfd) {
+        return send(sockfd, data.c_str(), data.size(), 0);
+    }
+
 public:
+    //Open socket, set timeout and establishe connection to the peer
     static inline int connectToPeer(const Peer& peer) {
         using namespace std;
 
@@ -59,19 +79,7 @@ public:
         return -1;
     }
 
-    static inline std::string createHandshake(const std::string& infoHash, const std::string& peerId) {
-        using namespace std;
-
-        static string pstr = "BitTorrent protocol";
-        
-        stringstream message;
-        message << to_string((unsigned char)19) << pstr;
-        for (int i = 0; i < 8; i++) message << to_string((unsigned char)0);
-        message << infoHash << peerId;
-
-        return message.str();
-    }
-
+    //Send handshake message
     static inline int handshake(const Peer& peer, const std::string& infoHash, const std::string& peerId) {
         using namespace std;
 
@@ -80,7 +88,9 @@ public:
 
         string handshakeMessage = createHandshake(infoHash, peerId);
 
-        cout << send(sockfd, handshakeMessage.c_str(), handshakeMessage.size(), 0) << endl;
+        sendData(handshakeMessage, sockfd);
         return sockfd;
     }
+
+    static inline std::string receive() {}
 };

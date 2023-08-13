@@ -27,6 +27,7 @@ struct TorrentFile
     int Length;
 };
 
+//Decodes bencoded torrent file and parses it into struct
 struct Decoder {
 private:
     static inline BencodedTorrentFile decode(std::string filename) {

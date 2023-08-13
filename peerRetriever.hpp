@@ -23,9 +23,10 @@ struct RetrievedPeers {
     std::vector<Peer> peers;
 };
 
-struct PeerRetriever
-{
+//Sends announce to the tracker and receives list of peers
+struct PeerRetriever {
 private:
+    //Decode string from hex to ordinary format
     static inline std::string hexDecode(const std::string& value) {
         int hashLength = value.length();
         std::string decodedHexString;
@@ -38,6 +39,7 @@ private:
         return decodedHexString;
     }
 
+    //Converts to consecutive bytes to integer by merging them together
     static inline int bytesToInt(std::string bytes) {
         std::string binStr;
         long byteCount = bytes.size();
@@ -47,6 +49,7 @@ private:
     }
 
 public:
+    //Retturns list of peers from the tracker and peer refresh interval
     static inline RetrievedPeers retrievePeers(TorrentFile& tf, std::string peerId) {
         using namespace std;
 
