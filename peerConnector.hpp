@@ -6,7 +6,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/poll.h>
 #include "peerRetriever.hpp"
+
+#define INFO_HASH_STARTING_POS 28
+#define HASH_LEN 20
 
 //Connects client to peers
 struct PeerConnector {
@@ -19,21 +23,6 @@ private:
         return (fcntl(sock, F_SETFL, flags) == 0);
     }
 
-    static inline std::string createHandshakeMessage(const std::string& infoHash, const std::string& peerId) {
-        const std::string protocol = "BitTorrent protocol";
-        std::stringstream buffer;
-        buffer << (char) protocol.length();
-        buffer << protocol;
-        std::string reserved;
-        for (int i = 0; i < 8; i++)
-            reserved.push_back('\0');
-        buffer << reserved;
-        buffer << PeerRetriever::hexDecode(infoHash);
-        buffer << peerId;
-        assert (buffer.str().length() == protocol.length() + 49);
-        return buffer.str();
-    }
-
     static inline std::string createHandshake(const std::string& infoHash, const std::string& peerId) {
         using namespace std;
 
@@ -42,16 +31,39 @@ private:
         stringstream message;
         message << (char)19 << pstr;
         for (int i = 0; i < 8; i++) message << (char)0;
-        message << PeerRetriever::hexDecode(infoHash) << peerId;
+        message << hexDecode(infoHash) << peerId;
 
         return message.str();
     }
 
+public:
     static inline int sendData(const std::string& data, int sockfd) {
         return send(sockfd, data.c_str(), data.size(), 0);
     }
 
-public:
+    static inline std::string receiveData(int sock, int size) {
+        std::string reply;
+
+        char buffer[size];
+        // Receives reply from the host
+        // Keeps reading from the buffer until all expected bytes are received
+        long bytesRead = 0;
+        long bytesToRead = size;
+        do
+        {
+            bytesRead = recv(sock, buffer, size, 0);
+
+            if (bytesRead <= 0) return "";
+                
+            bytesToRead -= bytesRead;
+            for (int i = 0; i < bytesRead; i++)
+                reply.push_back(buffer[i]);
+        }
+        while (bytesToRead > 0);
+
+        return reply;
+    }
+
     //Open socket, set timeout and establishe connection to the peer
     static inline int connectToPeer(const Peer& peer) {
         using namespace std;
@@ -107,12 +119,13 @@ public:
         sendData(handshakeMessage, sockfd);
 
         //Receive
-        char buffer[1024] = {0};
-        cout << recv(sockfd, &buffer, 1024, 0) << endl;
-        cout << buffer << endl;
-
+        std::string reply = receiveData(sockfd, handshakeMessage.size());
+        cout << reply << endl;
+        
+        //Verify handshake
+        if (reply.size() != handshakeMessage.size()) { close(sockfd); return -1; }
+        if ((reply.substr(INFO_HASH_STARTING_POS, HASH_LEN) == infoHash) != 0) { close(sockfd); return -1; }
+        
         return sockfd;
     }
-
-    static inline std::string receive() {}
 };

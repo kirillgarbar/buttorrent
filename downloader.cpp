@@ -1,5 +1,12 @@
-#include "downloader.hpp"
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #include <chrono>
+
+#include "downloader.hpp"
+#include "utils.hpp"
 
 using namespace std;
 
