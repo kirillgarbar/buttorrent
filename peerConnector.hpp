@@ -19,15 +19,30 @@ private:
         return (fcntl(sock, F_SETFL, flags) == 0);
     }
 
+    static inline std::string createHandshakeMessage(const std::string& infoHash, const std::string& peerId) {
+        const std::string protocol = "BitTorrent protocol";
+        std::stringstream buffer;
+        buffer << (char) protocol.length();
+        buffer << protocol;
+        std::string reserved;
+        for (int i = 0; i < 8; i++)
+            reserved.push_back('\0');
+        buffer << reserved;
+        buffer << PeerRetriever::hexDecode(infoHash);
+        buffer << peerId;
+        assert (buffer.str().length() == protocol.length() + 49);
+        return buffer.str();
+    }
+
     static inline std::string createHandshake(const std::string& infoHash, const std::string& peerId) {
         using namespace std;
 
         static string pstr = "BitTorrent protocol";
         
         stringstream message;
-        message << to_string((unsigned char)19) << pstr;
-        for (int i = 0; i < 8; i++) message << to_string((unsigned char)0);
-        message << infoHash << peerId;
+        message << (char)19 << pstr;
+        for (int i = 0; i < 8; i++) message << (char)0;
+        message << PeerRetriever::hexDecode(infoHash) << peerId;
 
         return message.str();
     }
@@ -88,7 +103,14 @@ public:
 
         string handshakeMessage = createHandshake(infoHash, peerId);
 
+        //Send
         sendData(handshakeMessage, sockfd);
+
+        //Receive
+        char buffer[1024] = {0};
+        cout << recv(sockfd, &buffer, 1024, 0) << endl;
+        cout << buffer << endl;
+
         return sockfd;
     }
 

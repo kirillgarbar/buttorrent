@@ -49,7 +49,6 @@ private:
         res.Length = get<bencode::integer>(dictInfo.find("length")->second);
         res.Pieces = get<bencode::string>(dictInfo.find("pieces")->second);
         res.InfoHash = sha1(dictInfo);
-
         return res;
     }
 
@@ -100,6 +99,7 @@ private:
 
         return res;
     }
+    
 public:
     static inline TorrentFile getTorrentFile(std::string filename) {
         BencodedTorrentFile btf = decode(filename);

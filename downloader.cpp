@@ -36,7 +36,9 @@ int TorrentDownloader::download() {
         && peer < peers.peers.size())
         {
             int sockfd = PeerConnector::handshake(this->peers.peers[peer], this->torrentFile.InfoHash, this->peerId);
-            close(sockfd);
+            if (sockfd > -1) {
+                close(sockfd);
+            }
             peer++;
             cout << to_string(chrono::duration_cast<chrono::milliseconds>(getTimestamp() - lastRetrieved).count()) << endl;
         }

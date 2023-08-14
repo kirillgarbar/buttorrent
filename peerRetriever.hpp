@@ -26,6 +26,16 @@ struct RetrievedPeers {
 //Sends announce to the tracker and receives list of peers
 struct PeerRetriever {
 private:
+    //Converts to consecutive bytes to integer by merging them together
+    static inline int bytesToInt(std::string bytes) {
+        std::string binStr;
+        long byteCount = bytes.size();
+        for (int i = 0; i < byteCount; i++)
+            binStr += std::bitset<8>(bytes[i]).to_string();
+        return stoi(binStr, 0, 2);
+    }
+
+public:
     //Decode string from hex to ordinary format
     static inline std::string hexDecode(const std::string& value) {
         int hashLength = value.length();
@@ -38,17 +48,7 @@ private:
         }
         return decodedHexString;
     }
-
-    //Converts to consecutive bytes to integer by merging them together
-    static inline int bytesToInt(std::string bytes) {
-        std::string binStr;
-        long byteCount = bytes.size();
-        for (int i = 0; i < byteCount; i++)
-            binStr += std::bitset<8>(bytes[i]).to_string();
-        return stoi(binStr, 0, 2);
-    }
-
-public:
+    
     //Retturns list of peers from the tracker and peer refresh interval
     static inline RetrievedPeers retrievePeers(TorrentFile& tf, std::string peerId) {
         using namespace std;
