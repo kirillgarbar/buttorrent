@@ -9,8 +9,6 @@ private:
     //Set socket to blocking and nonblocking mode
     static bool setSocketBlocking(int sock, bool blocking);
 
-    static std::string createHandshake(const std::string& infoHash, const std::string& peerId);
-
 public:
     static int sendData(const std::string& data, int sockfd);
 
@@ -24,6 +22,9 @@ public:
     //Open socket, set timeout and establishe connection to the peer
     static int connectToPeer(const Peer& peer);
 
-    //Send handshake message
+    //Open socket and connect to peer with connectToPeer, send and receive handshake message
     static int handshake(const Peer& peer, const std::string& infoHash, const std::string& peerId);
+
+    //Send interested message
+    static void interested(int sock);
 };

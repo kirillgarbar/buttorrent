@@ -50,14 +50,15 @@ int TorrentDownloader::download() {
             int sockfd = PeerConnector::handshake(this->peers.peers[peer], this->torrentFile.InfoHash, this->peerId);
             if (sockfd > -1) {
                 string bitField = PeerConnector::receiveBitField(sockfd);
+                PeerConnector::interested(sockfd);
                 cout << bitField.size() << endl;
+                //downloadPiece(peers.peers[peer], sockfd);
                 close(sockfd);
             }
             peer++;
             cout << to_string(chrono::duration_cast<chrono::milliseconds>(getTimestamp() - lastRetrieved).count()) << endl;
         }
         progress += 10;
-        cout << "Making progress" << endl;
     }
     return 0;
 }

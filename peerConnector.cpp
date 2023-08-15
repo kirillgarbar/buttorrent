@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <sys/poll.h>
 #include "utils.hpp"
+#include "messenger.hpp"
 
 #define INFO_HASH_STARTING_POS 28
 #define HASH_LEN 20
@@ -21,17 +22,6 @@ bool PeerConnector::setSocketBlocking(int sock, bool blocking) {
     if (flags == -1) return false;
     flags = blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
     return (fcntl(sock, F_SETFL, flags) == 0);
-}
-
-string PeerConnector::createHandshake(const std::string& infoHash, const std::string& peerId) {
-    static string pstr = "BitTorrent protocol";
-    
-    stringstream message;
-    message << (char)19 << pstr;
-    for (int i = 0; i < 8; i++) message << (char)0;
-    message << hexDecode(infoHash) << peerId;
-
-    return message.str();
 }
 
 int PeerConnector::sendData(const std::string& data, int sockfd) {
@@ -145,7 +135,7 @@ int PeerConnector::handshake(const Peer& peer, const std::string& infoHash, cons
     int sockfd = connectToPeer(peer);
     if (sockfd == -1) return -1;
 
-    string handshakeMessage = createHandshake(infoHash, peerId);
+    string handshakeMessage = Messenger::createHandshake(infoHash, peerId);
 
     //Send
     sendData(handshakeMessage, sockfd);
@@ -159,4 +149,9 @@ int PeerConnector::handshake(const Peer& peer, const std::string& infoHash, cons
     if ((reply.substr(INFO_HASH_STARTING_POS, HASH_LEN) == infoHash) != 0) { close(sockfd); return -1; }
     
     return sockfd;
+}
+
+void PeerConnector::interested(int sock) {
+    string message = Messenger::createInterested();
+    sendData(message, sock);
 }
