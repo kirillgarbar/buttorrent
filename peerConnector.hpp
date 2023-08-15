@@ -8,9 +8,13 @@
 #include <fcntl.h>
 #include <sys/poll.h>
 #include "peerRetriever.hpp"
+#include "bitTorrentMessage.hpp"
+
+#include "utils.hpp"
 
 #define INFO_HASH_STARTING_POS 28
 #define HASH_LEN 20
+#define READ_TIMEOUT 15000
 
 //Connects client to peers
 struct PeerConnector {
@@ -41,8 +45,30 @@ public:
         return send(sockfd, data.c_str(), data.size(), 0);
     }
 
-    static inline std::string receiveData(int sock, int size) {
+    static inline std::string receiveData(int sock, int size = 0) {
         std::string reply;
+
+        //used for receiving non-handshake messages, length is first 4 bytes of message
+        if (!size) {
+            struct pollfd fd;
+            int ret;
+            fd.fd = sock;
+            fd.events = POLLIN;
+            ret = poll(&fd, 1, READ_TIMEOUT);
+
+            if (ret <= 0) { return ""; }
+
+            const int lengthSize = 4;
+            char buffer[lengthSize];
+
+            long bytesRead = recv(sock, buffer, lengthSize, 0);
+
+            if (bytesRead != lengthSize) { return ""; }
+            
+            std::string length;
+            for(int i = 0; i < lengthSize; i++) length.push_back(buffer[i]);
+            size = bytesToInt(length);
+        }
 
         char buffer[size];
         // Receives reply from the host
@@ -62,6 +88,23 @@ public:
         while (bytesToRead > 0);
 
         return reply;
+    }
+
+    //Receive message from peer
+    static inline BitTorrentMessage receiveMessage(int sock) {
+        using namespace std;
+
+        string data = receiveData(sock);
+
+        string mes = to_string(MessageId::keepAlive);
+        if (!data.size()) return BitTorrentMessage(mes);
+        return BitTorrentMessage(data);
+    }
+
+    static inline std::string receiveBitField(int sock) {
+        BitTorrentMessage message = receiveMessage(sock);
+        if (message.getId() != MessageId::bitField) return "";
+        return message.getPayload();
     }
 
     //Open socket, set timeout and establishe connection to the peer

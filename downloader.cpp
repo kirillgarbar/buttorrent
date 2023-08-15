@@ -44,6 +44,8 @@ int TorrentDownloader::download() {
         {
             int sockfd = PeerConnector::handshake(this->peers.peers[peer], this->torrentFile.InfoHash, this->peerId);
             if (sockfd > -1) {
+                string bitField = PeerConnector::receiveBitField(sockfd);
+                cout << bitField.size() << endl;
                 close(sockfd);
             }
             peer++;
