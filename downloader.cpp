@@ -4,6 +4,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <chrono>
+#include <random>
+#include <climits>
+#include <algorithm>
+#include <functional>
+#include <bitset>
 
 #include "downloader.hpp"
 #include "utils.hpp"
