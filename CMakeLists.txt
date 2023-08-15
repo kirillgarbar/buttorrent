@@ -7,6 +7,6 @@ FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
                          GIT_TAG 0817715923c9705e68994eb52ef9df3f6845beba) # The commit hash for 1.10.x. Replace with the latest from: https://github.com/libcpr/cpr/releases
 FetchContent_MakeAvailable(cpr)
 
-add_executable(Buttorrent main.cpp downloader.cpp utils.cpp)
+add_executable(Buttorrent main.cpp downloader.cpp utils.cpp bitTorrentMessage.cpp)
 
 target_link_libraries(Buttorrent PRIVATE cpr::cpr)
