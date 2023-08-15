@@ -22,7 +22,11 @@ private:
     char id;
     std::string payload;
 public:
-    explicit BitTorrentMessage(std::string& message);
+    explicit BitTorrentMessage(const std::string& message);
+    BitTorrentMessage(char id = -1, const std::string& message = "");
+    BitTorrentMessage(BitTorrentMessage&& message) = default;
+    BitTorrentMessage& operator=(const BitTorrentMessage&) = default;
+
     std::string getPayload();
     char getId();
     std::string toString();

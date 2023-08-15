@@ -5,13 +5,19 @@
 
 using namespace std;
 
-BitTorrentMessage::BitTorrentMessage(string& message) {
+BitTorrentMessage::BitTorrentMessage(const string& message) {
     char id = message[0];
     string payload = message.substr(1, message.size()-1);
 
     this->id = id;
     this->payload = payload;
 }
+
+BitTorrentMessage::BitTorrentMessage(char id, const string& message) {
+    this->id = id;
+    this->payload = message;
+}
+
 
 char BitTorrentMessage::getId() { return id; }
 
