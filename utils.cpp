@@ -26,3 +26,16 @@ std::string hexDecode(const std::string& value) {
     }
     return decodedHexString;
 }
+
+//Get bit n'th from bitfield
+bool getBit(const std::string& bitField, int n) {
+    char byte = bitField.at(n / 8);
+    int offset = 7 - n % 8;
+    return (byte >> offset) & 1 != 0;
+}
+
+//Set bit n'th from bitfield
+bool setBit(std::string& bitField, int n) {
+    int offset = 7 - n % 8;
+    return bitField.at(n / 8) |= (1 << offset);
+}
