@@ -65,11 +65,19 @@ string PeerConnector::receiveData(int sock, int size) {
     // Keeps reading from the buffer until all expected bytes are received
     long bytesRead = 0;
     long bytesToRead = size;
+
     do
     {
+        struct pollfd fd;
+        fd.fd = sock;
+        fd.events = POLLIN;
+        int ret = poll(&fd, 1, READ_TIMEOUT_SHORT);
+
+        if (ret <= 0) throw runtime_error("Data receive timeout");
+
         bytesRead = recv(sock, buffer, size, 0);
 
-        if (bytesRead <= 0) return "";
+        if (bytesRead <= 0) throw runtime_error("Nothing to receive");
             
         bytesToRead -= bytesRead;
         for (int i = 0; i < bytesRead; i++)
@@ -86,8 +94,7 @@ BitTorrentMessage PeerConnector::receiveMessage(int sock) {
 
     string data = receiveData(sock);
 
-    string mes = to_string(MessageId::keepAlive);
-    if (!data.size()) return BitTorrentMessage(mes);
+    if (!data.size()) return BitTorrentMessage(MessageId::keepAlive);
     return BitTorrentMessage(data);
 }
 
@@ -134,13 +141,12 @@ int PeerConnector::connectToPeer(const Peer& peer) {
         }
     }
     close(sockfd);
-    return -1;
+    throw runtime_error("Connect to peer failed");
 }
 
 //Send handshake message
 int PeerConnector::handshake(const Peer& peer, const std::string& infoHash, const std::string& peerId) {
     int sockfd = connectToPeer(peer);
-    if (sockfd == -1) return -1;
 
     string handshakeMessage = Messenger::createHandshake(infoHash, peerId);
 
@@ -149,11 +155,13 @@ int PeerConnector::handshake(const Peer& peer, const std::string& infoHash, cons
 
     //Receive
     string reply = receiveData(sockfd, handshakeMessage.size());
-    cout << reply << endl;
     
     //Verify handshake
-    if (reply.size() != handshakeMessage.size()) { close(sockfd); return -1; }
-    if ((reply.substr(INFO_HASH_STARTING_POS, HASH_LEN) == infoHash) != 0) { close(sockfd); return -1; }
+    if (reply.size() != handshakeMessage.size()) { close(sockfd); throw runtime_error("Failed to receive handshake"); }
+    if ((reply.substr(INFO_HASH_STARTING_POS, HASH_LEN) == infoHash) != 0) { 
+        close(sockfd); 
+        throw runtime_error("Failed to receive handshake - hashes are not equal"); 
+    }
     
     return sockfd;
 }
