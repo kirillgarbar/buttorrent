@@ -101,6 +101,12 @@ private:
     }
     
 public:
+    static inline std::string sha1(std::string& s) {
+        SHA1 sha{};
+        sha.update(s);
+        return sha.final();
+    }
+
     static inline TorrentFile getTorrentFile(std::string filename) {
         BencodedTorrentFile btf = decode(filename);
         return parse(btf);
