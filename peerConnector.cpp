@@ -7,12 +7,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/poll.h>
+#include <stdexcept>
 #include "utils.hpp"
 #include "messenger.hpp"
 
 #define INFO_HASH_STARTING_POS 28
 #define HASH_LEN 20
-#define READ_TIMEOUT 15000
+#define READ_TIMEOUT 10000
+#define READ_TIMEOUT_SHORT 1000
 
 using namespace std;
 
@@ -39,19 +41,24 @@ string PeerConnector::receiveData(int sock, int size) {
         fd.events = POLLIN;
         ret = poll(&fd, 1, READ_TIMEOUT);
 
-        if (ret <= 0) { return ""; }
+        if (ret <= 0) throw runtime_error("Data receive timeout");
 
         const int lengthSize = 4;
         char buffer[lengthSize];
 
         long bytesRead = recv(sock, buffer, lengthSize, 0);
 
-        if (bytesRead != lengthSize) { return ""; }
+        if (bytesRead != lengthSize) throw runtime_error("Receiving message length failed");
         
         string length;
         for(int i = 0; i < lengthSize; i++) length.push_back(buffer[i]);
         size = bytesToInt(length);
     }
+
+    // If the buffer size is greater than uint16_t max, a segfault will
+    // occur when initializing the buffer
+    if (size > std::numeric_limits<uint16_t>::max())
+        throw std::runtime_error("Received corrupted data");
 
     char buffer[size];
     // Receives reply from the host
