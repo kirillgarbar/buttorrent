@@ -5,8 +5,8 @@
 #include <cpr/cpr.h>
 #include <bitset>
 
-//Converts to consecutive bytes to integer by merging them together
-int bytesToInt(std::string bytes) {
+//Converts consecutive bytes to integer by merging them together
+int bytesToInt(const std::string bytes) {
     std::string binStr;
     long byteCount = bytes.size();
     for (int i = 0; i < byteCount; i++)
