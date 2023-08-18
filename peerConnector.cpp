@@ -170,3 +170,8 @@ void PeerConnector::interested(int sock) {
     string message = Messenger::createInterested();
     sendData(message, sock);
 }
+
+void PeerConnector::requestPiece(int index, int offset, int size, int sock) {
+    string message = Messenger::createRequest(index, offset, size);
+    sendData(message, sock);
+}

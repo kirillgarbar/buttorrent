@@ -27,4 +27,6 @@ public:
 
     //Send interested message
     static void interested(int sock);
+
+    static void requestPiece(int index, int offset, int size, int sock);
 };
