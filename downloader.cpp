@@ -17,13 +17,20 @@ using namespace std;
 
 #define BlockSize 16384
 
-TorrentDownloader::TorrentDownloader(std::string fileName) {
+TorrentDownloader::TorrentDownloader(const std::string& fileName) {
     torrentFile = Decoder::getTorrentFile(fileName);
     peerId = generatePeerId();
     piece = 0;
-    //Delete file contents if already exists
-    downloadedFile.open(torrentFile.Name, std::ofstream::out | std::ofstream::trunc);
-    downloadedFile.close();
+    fileManager = FileManager{torrentFile.Name};
+    fileManager.createFile();
+}
+
+TorrentDownloader::TorrentDownloader(std::string&& fileName) {
+    torrentFile = Decoder::getTorrentFile(fileName);
+    peerId = generatePeerId();
+    piece = 0;
+    fileManager = FileManager{torrentFile.Name};
+    fileManager.createFile();
 }
 
 std::string TorrentDownloader::generatePeerId() {
@@ -52,6 +59,14 @@ void TorrentDownloader::downloadPiece(Peer& peer, int length, int sock) {
     std::stringstream pieceString;
 
     while (block < totalBlocks) {
+        //In case previous piece downloaded from same peer
+        //to prevent receive message timeout when no request was sent
+        if (!choke && !requestSent) {
+            requestSent = true;
+            if (block == totalBlocks - 1) PeerConnector::requestPiece(piece, offset, lastBlockLength, sock);
+            else PeerConnector::requestPiece(piece, offset, BlockSize, sock);
+        }
+
         BitTorrentMessage message = PeerConnector::receiveMessage(sock);
         switch (message.getId()) {
             case MessageId::unchoke:
@@ -97,15 +112,10 @@ void TorrentDownloader::downloadPiece(Peer& peer, int length, int sock) {
     string downloadedPiece = pieceString.str();
     string pieceHash = hexDecode(Decoder::sha1(downloadedPiece));
 
-    cout << requestSent << !(pieceHash == torrentFile.PieceHashes[piece]) << endl;
-    cout << pieceHash << "     " << torrentFile.PieceHashes[piece] << endl;
-
     //Piece downloaded successfully
     if (pieceHash == torrentFile.PieceHashes[piece])  { 
         this->piece++;
-        downloadedFile.open(torrentFile.Name, std::ofstream::out | std::ofstream::app);
-        downloadedFile << downloadedPiece;
-        downloadedFile.close();
+        fileManager.writeToFile(downloadedPiece);
     }
 }
 

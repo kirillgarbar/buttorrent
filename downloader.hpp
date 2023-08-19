@@ -3,6 +3,7 @@
 #include "decoder.hpp"
 #include "peerRetriever.hpp"
 #include "peerConnector.hpp"
+#include "fileManager.hpp"
 
 struct TorrentDownloader
 {
@@ -17,11 +18,12 @@ private:
     bool requestSent = false;
     std::string bitField;
 
-    std::ofstream downloadedFile;
+    FileManager fileManager;
 
     std::string generatePeerId();    
 public:
-    TorrentDownloader(std::string fileName);
+    explicit TorrentDownloader(std::string&& fileName);
+    explicit TorrentDownloader(const std::string& fileName);
 
     int download();
     void downloadPiece(Peer& peer, int length, int sock);
