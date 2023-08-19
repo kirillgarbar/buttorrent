@@ -22,8 +22,8 @@ private:
 
     std::string generatePeerId();    
 public:
-    explicit TorrentDownloader(std::string&& fileName);
-    explicit TorrentDownloader(const std::string& fileName);
+    TorrentDownloader(std::string&& fileName, std::string&& outputPath);
+    TorrentDownloader(const std::string& fileName, const std::string& outputPath);
 
     int download();
     void downloadPiece(Peer& peer, int length, int sock);

@@ -8,7 +8,7 @@ private:
     std::ofstream file;
 public:
     FileManager() = default;
-    explicit FileManager(const std::string& fileName);
+    FileManager(const std::string& fileName, const std::string& outputPath);
     void createFile();
     void writeToFile(const std::string& content);
 };

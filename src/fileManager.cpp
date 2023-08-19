@@ -2,7 +2,7 @@
 
 using namespace std;
 
-FileManager::FileManager(const string& fileName): fileName(fileName) {};
+FileManager::FileManager(const string& fileName, const string& outputPath): fileName(outputPath + fileName) {};
 
 void FileManager::createFile() {
     file.open(fileName, std::ofstream::out | std::ofstream::trunc);

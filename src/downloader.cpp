@@ -17,19 +17,19 @@ using namespace std;
 
 #define BlockSize 16384
 
-TorrentDownloader::TorrentDownloader(const std::string& fileName) {
+TorrentDownloader::TorrentDownloader(const std::string& fileName, const std::string& outputPath) {
     torrentFile = Decoder::getTorrentFile(fileName);
     peerId = generatePeerId();
     piece = 0;
-    fileManager = FileManager{torrentFile.Name};
+    fileManager = FileManager{torrentFile.Name, outputPath};
     fileManager.createFile();
 }
 
-TorrentDownloader::TorrentDownloader(std::string&& fileName) {
+TorrentDownloader::TorrentDownloader(std::string&& fileName, std::string&& outputPath) {
     torrentFile = Decoder::getTorrentFile(fileName);
     peerId = generatePeerId();
     piece = 0;
-    fileManager = FileManager{torrentFile.Name};
+    fileManager = FileManager{torrentFile.Name, outputPath};
     fileManager.createFile();
 }
 

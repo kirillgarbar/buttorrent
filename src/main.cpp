@@ -10,13 +10,14 @@ int main(int argc, char * argv[]) {
     cxxopts::Options options("Buttorrent", "Simple torrent client");
     options.add_options()
     ("f,torrentFile", "Torrent file path", cxxopts::value<string>())
+    ("o,outputDirectory", "Output directory", cxxopts::value<string>()->default_value("../../result/"))
     ;
 
     try {
         auto result = options.parse(argc, argv);
 
         if (result.count("torrentFile")) {
-            TorrentDownloader d{result["f"].as<string>()};
+            TorrentDownloader d{result["f"].as<string>(), result["o"].as<string>()};
             d.download();
         }
     } catch (cxxopts::OptionException &e) {
