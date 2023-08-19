@@ -90,6 +90,7 @@ void TorrentDownloader::downloadPiece(Peer& peer, int length, int sock) {
                 std::string payload = message.getPayload();
                 int index = bytesToInt(payload.substr(0, 4));
                 int begin = bytesToInt(payload.substr(4, 4));
+                cout << "Piece received" << endl;
                 if (index == piece) {
                     if (begin == offset) { 
                         pieceString << payload.substr(8); 
@@ -103,11 +104,13 @@ void TorrentDownloader::downloadPiece(Peer& peer, int length, int sock) {
             default:
                 break;
         }
+        cout << "Message id " << (int)message.getId() << endl;
         if (block < totalBlocks && !requestSent && !choke) {
             requestSent = true;
             if (block == totalBlocks - 1) PeerConnector::requestPiece(piece, offset, lastBlockLength, sock);
             else PeerConnector::requestPiece(piece, offset, BlockSize, sock);
         }
+        cout << "Current block " << block << endl;
     }
     string downloadedPiece = pieceString.str();
     string pieceHash = hexDecode(Decoder::sha1(downloadedPiece));
@@ -127,10 +130,14 @@ int TorrentDownloader::download() {
     static int totalPieces = torrentFile.PieceHashes.size();
     static int lastPieceSize = torrentFile.Length - (totalPieces - 1) * torrentFile.PieceLength;
 
+    cout << torrentFile.PieceLength << " " << lastPieceSize << endl;
+
     while (piece < totalPieces) {
         peers = PeerRetriever::retrievePeers(torrentFile, peerId);
         auto lastRetrieved = getTimestamp();
         int retrieveInterval = peers.interval * 1000;
+
+        cout << "Interval: " << retrieveInterval << endl;
 
         int peer = 0;
         while (chrono::duration_cast<chrono::milliseconds>(getTimestamp() - lastRetrieved).count() < retrieveInterval 
@@ -141,14 +148,21 @@ int TorrentDownloader::download() {
                 sockfd = PeerConnector::handshake(this->peers.peers[peer], this->torrentFile.InfoHash, this->peerId);
                 bitField = PeerConnector::receiveBitField(sockfd);
 
+                cout << "Bitfield received, size: " << bitField.size() << endl;
+
                 //If peer has interesting piece
                 while (getBit(bitField, piece)) {
+                    cout << "Start downloading piece: " << piece << endl;
+                    cout << "Choked: " << choke << endl;
+                    cout << "Request sent: " << requestSent << endl;
                     PeerConnector::interested(sockfd);
                     if (piece == totalPieces - 1) downloadPiece(peers.peers[peer], lastPieceSize, sockfd);
                     else downloadPiece(peers.peers[peer], torrentFile.PieceLength, sockfd);
                 }
+                cout << "Piece " << piece << " not found" << endl;
             } catch (runtime_error& e) {
                 //Failed to connect, try another peer
+                cout << e.what() << endl;
             }
             peer++;
             choke = true;
