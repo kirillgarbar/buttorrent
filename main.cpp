@@ -2,11 +2,27 @@
 #include <iostream>
 #include <fstream>
 #include "downloader.hpp"
+#include "cxxopts.hpp"
 
-int main() {
+int main(int argc, char * argv[]) {
     using namespace std;
 
-    TorrentDownloader d{"Debian.torrent"};
-    d.download();
+    cxxopts::Options options("Buttorrent", "Simple torrent client");
+    options.add_options()
+    ("f,torrentFile", "Torrent file path", cxxopts::value<string>())
+    ;
+
+    try {
+        auto result = options.parse(argc, argv);
+
+        if (result.count("torrentFile")) {
+            TorrentDownloader d{result["f"].as<string>()};
+            d.download();
+        }
+    } catch (cxxopts::OptionException &e) {
+        cout << e.what() << endl;
+        return 1;
+    }
+    
     return 0;
 }
