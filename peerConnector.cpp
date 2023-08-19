@@ -15,6 +15,7 @@
 #define HASH_LEN 20
 #define READ_TIMEOUT 10000
 #define READ_TIMEOUT_SHORT 1000
+#define MAX_RECEIVE_SIZE 16393
 
 using namespace std;
 
@@ -55,9 +56,9 @@ string PeerConnector::receiveData(int sock, int size) {
         size = bytesToInt(length);
     }
 
-    // If the buffer size is greater than uint16_t max, a segfault will
+    // If the buffer size is greater than MAX_RECEIVE_SIZE, a segfault will
     // occur when initializing the buffer
-    if (size > std::numeric_limits<uint16_t>::max())
+    if (size > MAX_RECEIVE_SIZE)
         throw std::runtime_error("Received corrupted data");
 
     char buffer[size];
