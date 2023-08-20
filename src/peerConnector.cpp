@@ -36,7 +36,6 @@ string PeerConnector::receiveData(int sock, int size) {
 
     //used for receiving non-handshake messages, length is first 4 bytes of message
     if (!size) {
-        cout << "RECEIVING LENGTH" << endl;
         struct pollfd fd;
         int ret;
         fd.fd = sock;
@@ -70,7 +69,6 @@ string PeerConnector::receiveData(int sock, int size) {
 
     do
     {
-        cout << "RECEIVING BYTES " << size << endl;
         struct pollfd fd;
         fd.fd = sock;
         fd.events = POLLIN;
