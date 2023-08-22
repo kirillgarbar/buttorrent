@@ -14,7 +14,10 @@ cmake .. && cmake --build .
 ```console
 ./Buttorrent -f ../../result/ComputerNetworks.torrent -o ../../result/
 ```
-
+- Output will look like this
+```console
+32.00 KB/s, 264/298 Pieces, 88.59%, 02:21
+```
 Commandline Options
 ==========================
 The program supports the following commandline options:
