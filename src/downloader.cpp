@@ -48,6 +48,20 @@ std::string TorrentDownloader::generatePeerId() {
 
 chrono::steady_clock::time_point getTimestamp() { return chrono::steady_clock::now(); }
 
+bool TorrentDownloader::verifyPiece(const string& piece) {
+    string pieceHash = hexDecode(Decoder::sha1(piece));
+
+    //Piece downloaded successfully
+    return pieceHash == torrentFile.PieceHashes[this->piece];
+}
+
+void TorrentDownloader::savePiece(const string& piece) {
+    lock.lock();
+    this->piece++;
+    lock.unlock();
+    fileManager.writeToFile(piece);
+}
+
 void TorrentDownloader::downloadPiece(Peer& peer, int length, int sock) {
     //Number of blocks of BlockSize
     //Most of the time PieceLength will be divisible by BlockSize
@@ -109,14 +123,9 @@ void TorrentDownloader::downloadPiece(Peer& peer, int length, int sock) {
             else PeerConnector::requestPiece(piece, offset, BlockSize, sock);
         }
     }
-    string downloadedPiece = pieceString.str();
-    string pieceHash = hexDecode(Decoder::sha1(downloadedPiece));
 
-    //Piece downloaded successfully
-    if (pieceHash == torrentFile.PieceHashes[piece])  { 
-        this->piece++;
-        fileManager.writeToFile(downloadedPiece);
-    }
+    string resultPiece = pieceString.str();
+    if (verifyPiece(resultPiece)) savePiece(resultPiece);
 }
 
 void closeSocket(int sock) {

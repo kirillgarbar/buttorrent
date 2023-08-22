@@ -1,8 +1,6 @@
 #include "bitTorrentMessage.hpp"
 #include <sstream>
 
-#include <iostream>
-
 using namespace std;
 
 BitTorrentMessage::BitTorrentMessage(const string& message) {

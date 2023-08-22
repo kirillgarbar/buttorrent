@@ -30,7 +30,7 @@ struct TorrentFile
 //Decodes bencoded torrent file and parses it into struct
 struct Decoder {
 private:
-    static inline BencodedTorrentFile decode(std::string filename) {
+    static inline BencodedTorrentFile decode(const std::string& filename) {
         using namespace std;
 
         BencodedTorrentFile res{};
@@ -52,7 +52,7 @@ private:
         return res;
     }
 
-    static inline std::string sha1(bencode::dict dictInfo) {
+    static inline std::string sha1(bencode::dict& dictInfo) {
         using namespace std;
 
         //encode dict in file
@@ -101,13 +101,13 @@ private:
     }
     
 public:
-    static inline std::string sha1(std::string& s) {
+    static inline std::string sha1(const std::string& s) {
         SHA1 sha{};
         sha.update(s);
         return sha.final();
     }
 
-    static inline TorrentFile getTorrentFile(std::string filename) {
+    static inline TorrentFile getTorrentFile(const std::string& filename) {
         BencodedTorrentFile btf = decode(filename);
         return parse(btf);
     }

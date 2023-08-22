@@ -10,7 +10,7 @@
 using namespace std;
 
 //Retturns list of peers from the tracker and peer refresh interval
-RetrievedPeers PeerRetriever::retrievePeers(TorrentFile& tf, std::string peerId) {
+RetrievedPeers PeerRetriever::retrievePeers(const TorrentFile& tf, const std::string& peerId) {
 
     cpr::Response res = cpr::Get(cpr::Url{tf.Announce}, cpr::Parameters {
         { "info_hash", hexDecode(tf.InfoHash) },

@@ -15,6 +15,6 @@ struct RetrievedPeers {
 //Sends announce to the tracker and receives list of peers
 struct PeerRetriever {
     //Retturns list of peers from the tracker and peer refresh interval
-    static RetrievedPeers retrievePeers(TorrentFile& tf, std::string peerId);
+    static RetrievedPeers retrievePeers(const TorrentFile& tf, const std::string& peerId);
 };
 
