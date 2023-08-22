@@ -1,7 +1,9 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <thread>
 #include "downloader.hpp"
+#include "progressTracker.hpp"
 #include "cxxopts.hpp"
 
 int main(int argc, char * argv[]) {
@@ -18,6 +20,11 @@ int main(int argc, char * argv[]) {
 
         if (result.count("torrentFile")) {
             TorrentDownloader d{result["f"].as<string>(), result["o"].as<string>()};
+    
+            ProgressTracker t{d};
+            thread progressThread {[&t]() { t.trackProgress(); }};
+            progressThread.detach();
+
             d.download();
         }
     } catch (cxxopts::OptionException &e) {

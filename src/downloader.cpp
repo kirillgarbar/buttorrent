@@ -133,6 +133,7 @@ void closeSocket(int sock) {
 }
 
 int TorrentDownloader::download() {
+    startTime = time(nullptr);
     static int totalPieces = torrentFile.PieceHashes.size();
     static int lastPieceSize = torrentFile.Length - (totalPieces - 1) * torrentFile.PieceLength;
 
@@ -166,4 +167,11 @@ int TorrentDownloader::download() {
         }
     }
     return 0;
+}
+
+ProgressStatistics TorrentDownloader::getStatistics() const {
+    lock.lock();
+    ProgressStatistics result = { startTime, time(nullptr), piece, (int)torrentFile.PieceHashes.size(), torrentFile.PieceLength };
+    lock.unlock();
+    return result;
 }
